@@ -29,6 +29,9 @@ endif
 if ARCH_ARM
 m_minerd_SOURCES += sha2-arm.S scrypt-arm.S
 endif
+if ARCH_aarch64
+m_minerd_SOURCES += sha256-armv8-aarch64.S
+endif
 endif
 m_minerd_LDFLAGS	= $(PTHREAD_FLAGS) -flto -fuse-linker-plugin -Ofast
 m_minerd_LDADD	= @LIBCURL@ @JANSSON_LIBS@ @PTHREAD_LIBS@ @WS2_LIBS@ @M7M_LIBS@ -lgmp -lcurl -lm

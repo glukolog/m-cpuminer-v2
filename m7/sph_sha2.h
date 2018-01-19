@@ -43,6 +43,10 @@
 #include <stddef.h>
 #include "sph_types.h"
 
+#define SPH_SMALL_FOOTPRINT   1
+#define ASM_ARM64
+#define SPH_KECCAK_UNROLL 0
+
 /**
  * Output size (in bits) for SHA-224.
  */
@@ -75,6 +79,7 @@ typedef struct {
 #endif
 } sph_sha224_context;
 
+void sha256_block_data_order (uint32_t *ctx, const void *in, size_t num);
 /**
  * This structure is a context for SHA-256 computations. It is identical
  * to the SHA-224 context. However, a context is initialized for SHA-224

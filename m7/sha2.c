@@ -609,7 +609,11 @@ static void
 sha2_round(const unsigned char *data, sph_u32 r[8])
 {
 #define SHA2_IN(x)   sph_dec32be_aligned(data + (4 * (x)))
+#ifndef ASM_ARM64
 	SHA2_ROUND_BODY(SHA2_IN, r);
+#else
+	sha256_block_data_order(r, data, 1);
+#endif
 #undef SHA2_IN
 }
 
