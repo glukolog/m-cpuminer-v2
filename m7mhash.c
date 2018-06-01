@@ -50,70 +50,45 @@ inline double exp_n2(double x1, double x2)
         return 0.;
 }
 
-double swit2_(double wvnmb)
+double GaussianQuad_N2(const double x1)
 {
-    return pow( (5.55243*(exp_n(-0.3*wvnmb/15.762) - exp_n(-0.6*wvnmb/15.762)))*wvnmb, 0.5) 
-	  / 1034.66 * pow(sin(wvnmb/65.), 2.);
-}
-
-
-double GaussianQuad_N2(const double x1, const double x2)
-{
-    double s=0.0;
     double x[6], w[6];
-    //gauleg(a2, b2, x, w);
-    
-    int m,j;
-    double z1, z, xm, xl, pp, p3, p2, p1;
-    m=3;
-    xm=0.5*(x2+x1);
-    xl=0.5*(x2-x1);
-    for(int i=1;i<=3;i++)
-    {
-		z = (i == 1) ? 0.909632 : -0.0;
-		z = (i == 2) ? 0.540641 : z;
-	    do
-	    {
-			p1 = z;
-			p2 = 1;
-			p3 = 0;
-			
-			p3=1;
-			p2=z;
-			p1=((3.0 * z * z) - 1) / 2;
-			
-			p3=p2;
-			p2=p1;
-			p1=((5.0 * z * p2) - (2.0 * z)) / 3;
-			
-			p3=p2;
-			p2=p1;
-			p1=((7.0 * z * p2) - (3.0 * p3)) / 4;
-			
-			p3=p2;
-			p2=p1;
-			p1=((9.0 * z * p2) - (4.0 * p3)) / 5;
-		    
-		    pp=5*(z*p1-p2)/(z*z-1.0);
-		    z1=z;
-		    z=z1-p1/pp;
-	    } while (fabs(z-z1) > 3.0e-11);
-	    
-	    x[i]=xm-xl*z;
-	    x[5+1-i]=xm+xl*z;
-	    w[i]=2.0*xl/((1.0-z*z)*pp*pp);
-	    w[5+1-i]=w[i];
+    double xm, xm1, w1;
+    xm=x1/2;
+	
+    xm1 = xm*0.90617984593866;
+    x[1]=xm-xm1;
+    x[5]=xm+xm1;
+
+    w1 = 2.0*xm/8.4414227601302;
+    w[1]=w1;
+    w[5]=w1;
+    //second
+    xm1 = xm*0.53846931010568;
+    x[2]=xm-xm1;
+    x[4]=xm+xm1;
+
+    w1 = 2.0*xm/4.1786046748265;
+    w[2]=w1;
+    w[4]=w1;
+    //third
+    x[3]=xm;
+    w[3]=2.0*xm/3.515625;
+
+    double s=0.0;
+    double lll;
+    for(int j=1; j<=5; j++) {
+        lll = sin(x[j]/65.);
+        s += w[j] * (sqrt((5.55243 * (exp_n(-0.3*x[j]/15.762) - exp_n(-0.6*x[j]/15.762))) * x[j])/1034.66*(lll*lll));
     }
-    
-    for(int j=1; j<=5; j++) s += w[j]*swit2_(x[j]);
-    
+
     return s;
 }
 
 uint32_t sw2_(int nnounce)
 {
     double wmax = ((sqrt((double)(nnounce))*(1.+EPSa))/450+100);
-    return ((uint32_t)(GaussianQuad_N2(0., wmax)*(1.+EPSa)*1.e6));
+    return ((uint32_t)(GaussianQuad_N2(wmax)*(1.+EPSa)*1.e6));
 }
 
 #define BITS_PER_DIGIT 3.32192809488736234787

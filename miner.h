@@ -135,9 +135,21 @@ static inline void le32enc(void *pp, uint32_t x)
 void sha256_init(uint32_t *state);
 void sha256_transform(uint32_t *state, const uint32_t *block, int swap);
 void sha256d(unsigned char *hash, const unsigned char *data, int len);
-void sha256_block_data_order (uint32_t *ctx, const void *in, size_t num);
 
 #ifdef USE_ASM
+#if defined( __aarch64__) || defined(__aarch32__)
+/*found in sha256-armv8-aarch64.S & sha256-armv8-aarch32.S. Uses armv8 crypto extensions for hardware acceleration*/
+void sha256_block_data_order (uint32_t *ctx, const void *in, size_t num);
+#endif
+#ifdef __aarch64__
+/*found in sha512-armv8.S. If the target processor supports sha512 crypto extensions they are used, otherwise asm software method*/
+void sha512_block_data_order (uint64_t *ctx, const void *in, size_t num);
+#endif
+#ifdef __ARM_NEON__
+/*found in sha256-armv4.S and sha512-armv4.S. Uses neon. Might also be applied to armv8 compiled for aarch32. */
+void sha256_block_data_order_neon (uint32_t *ctx, const void *in, size_t num);
+void sha512_block_data_order_neon (uint64_t *ctx, const void *in, size_t num);
+#endif
 #if defined(__ARM_NEON__) || defined(__i386__) || defined(__x86_64__)
 #define HAVE_SHA256_4WAY 1
 int sha256_use_4way();
