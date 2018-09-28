@@ -79,7 +79,14 @@ typedef struct {
 #endif
 } sph_sha224_context;
 
+/*see miner.h*/
+#if defined(__aarch64__) || defined(__aarch32__)
 void sha256_block_data_order (uint32_t *ctx, const void *in, size_t num);
+#endif
+/*see miner.h*/
+#ifdef __ARM_NEON__
+void sha256_block_data_order_neon (uint32_t *ctx, const void *in, size_t num);
+#endif
 /**
  * This structure is a context for SHA-256 computations. It is identical
  * to the SHA-224 context. However, a context is initialized for SHA-224
@@ -240,6 +247,13 @@ typedef struct {
 #endif
 } sph_sha384_context;
 
+#ifdef __aarch64__
+void sha512_block_data_order (uint64_t *ctx, const void *in, size_t num);
+//void sha512_block_armv8 (uint64_t *ctx, const void *in, size_t num);
+#endif
+#ifdef __ARM_NEON__
+void sha512_block_data_order_neon (uint64_t *ctx, const void *in, size_t num);
+#endif
 /**
  * Initialize a SHA-384 context. This process performs no memory allocation.
  *

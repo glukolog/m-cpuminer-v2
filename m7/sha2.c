@@ -608,13 +608,18 @@ static const sph_u32 K[64] = {
 static void
 sha2_round(const unsigned char *data, sph_u32 r[8])
 {
-#define SHA2_IN(x)   sph_dec32be_aligned(data + (4 * (x)))
-#ifndef ASM_ARM64
-	SHA2_ROUND_BODY(SHA2_IN, r);
-#else
+	/*see miner.h*/
+#if	defined(__aarch64__) || defined(__aarch32__)
 	sha256_block_data_order(r, data, 1);
-#endif
+	/*see miner.h*/
+#elif defined(__ARM_NEON__)
+	sha256_block_data_order_neon(r, data, 1);
+#else
+	/*default*/
+#define SHA2_IN(x)   sph_dec32be_aligned(data + (4 * (x)))
+	SHA2_ROUND_BODY(SHA2_IN, r);
 #undef SHA2_IN
+#endif
 }
 
 /* see sph_sha2.h */

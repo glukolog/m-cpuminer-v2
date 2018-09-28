@@ -1,3 +1,8 @@
+/*
+ 1-June-2018 Rauli Kumpulainen
+ Taken from https://github.com/jocover/sha256-armv8 all credit to which.
+ __AARCH64EL__ (almost always used) is assumed at compile time.
+*/
 
 .text
 .arch   armv8-a+crypto
@@ -14,7 +19,9 @@ sha256_block_data_order:
     stp       x29, x30, [sp,#-64]!
     mov       x29, sp
     adr       x3, .LKConstant256
+	// Load constants table pointer
     str       q8, [sp, #16]
+	// Cache constants table in registers v16 - v31
     ld1       {v16.4s-v19.4s}, [x3], #64
     ld1       {v0.4s}, [x0], #16
     ld1       {v20.4s-v23.4s}, [x3], #64
@@ -25,7 +32,16 @@ sha256_block_data_order:
     str       q9, [sp, #32]
     str       q10, [sp, #48]
     ld1       {v28.4s-v31.4s}, [x3], #64
-    
+	// Cache constants table in registers v16 - v31	
+	// below taken from https://github.com/minio/sha256-simd/blob/master/sha256block_arm64.s not sure if worth integrating
+	//.inst 0x4cdf2870 // ld1	{v16.4s-v19.4s}, [x3], #64
+	//.inst 0x4cdf7800 // ld1	{v0.4s}, [x0], #16
+	//.inst 0x4cdf2874 // ld1	{v20.4s-v23.4s}, [x3], #64
+	//.inst 0x4c407801 // ld1	{v1.4s}, [x0]
+	//.inst 0x4cdf2878 // ld1	{v24.4s-v27.4s}, [x3], #64
+	//.inst 0xd1004000 // sub	x0, x0, #0x10
+	//.inst 0x4cdf287c // ld1	{v28.4s-v31.4s}, [x3], #64
+
 .Lsha256loop:
 
     ld1       {v5.16b-v8.16b}, [x1], #64
@@ -124,12 +140,14 @@ sha256_block_data_order:
     mov       v4.16b, v2.16b
     sha256h   q2, q3, v10.4s
     sha256h2  q3, q4, v10.4s
-    cmp       x1, x2
+    //cmp       x1, x2
+    sub       x4, x1, x2 // iterator--
     add       v1.4s, v1.4s, v3.4s
     add       v0.4s, v0.4s, v2.4s
-    b.ne      .Lsha256loop
+    //b.ne      .Lsha256loop
+    cbnz      x4,.Lsha256loop //any more blocks? actually only dealing with one block in one round "sha256_block_data_order(r,data,1)"
 
-.Lsha256epilog:
+//.Lsha256epilog:
 
     st1       {v0.4s,v1.4s}, [x0]
     ldr       q10, [sp, #48]
@@ -159,5 +177,3 @@ sha256_block_data_order:
 
 .size   sha256_block_data_order,.-sha256_block_data_order
 .align	2
-
-

@@ -171,9 +171,16 @@ static const sph_u64 H512[8] = {
 static void
 sha3_round(const unsigned char *data, sph_u64 r[8])
 {
-#define SHA3_IN(x)   sph_dec64be_aligned(data + (8 * (x)))
-	SHA3_ROUND_BODY(SHA3_IN, r);
+#ifdef  __aarch64__
+        sha512_block_data_order(r, data, 1);
+	//sha512_block_armv8(r, data, 1);
+#elif defined(__ARM_NEON__)
+	sha512_block_data_order_neon(r, data, 1);
+#else
+#define SHA3_IN(x)   sph_dec64be_aligned(data + (4 * (x)))
+        SHA3_ROUND_BODY(SHA3_IN, r);
 #undef SHA3_IN
+#endif
 }
 
 /* see sph_sha3.h */
